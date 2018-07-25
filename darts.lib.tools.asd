@@ -36,9 +36,9 @@
   :description "More or less useful utilities"
   :long-description ""
   :depends-on ()
-  :serial t 
   :components
   ((:module :src
     :components
     ((:file "packages")
-     (:file "properties")))))
+     (:file "properties" :depends-on ("packages"))
+     (:file "iteration" :depends-on ("packages"))))))

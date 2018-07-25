@@ -229,3 +229,47 @@ use property lists of symbols (somewhat funny, as I use them for
 other stuff all the time), I decided to not open that can of worms
 right now.
 
+## Iteration Macros
+
+ - **Macro** `named-loop` _name_ `(&rest` _bindings_`)` `&body` _body_
+ 
+   This operator is inspired by Scheme's named-let feature, though less
+   general. Each of the _bindings_ is a list of the form `(` _variable_ _form_ `)`.
+   This macro binds each of the mentioned names _variable_ to the result
+   of evaluating its initializer _form_, and then evaluates the forms 
+   of _body_ like `progn`. The values of the last evaluated form are
+   returned as the values of the whole operation.
+   
+   Visible in _body_ is an operator, whose name is _name_, which takes
+   as many required arguments as there are binding forms in _bindings_.
+   When called, each of the bound variables are get their values
+   reassigned from the arguments, and the execution restarts. Note,
+   that it is currently unspecified, whether the operator is 
+   implemented as (local) function or a macro. Using something like
+   `#'`_name_ is an error.
+   
+   Example:
+   
+   ```
+   (defun my-length (list)
+     (named-loop next ((list list) (count 0))
+       (if (consp list)
+           (next (cdr list) (1+ count))
+           count)))
+   ```
+   
+   The whole operator is similar in spirit to the construct
+   
+   ```
+   (labels ((next (list count)
+              (if (consp list) 
+                  (next (cdr list) (1+ count))
+                  count)))
+     (next list 0))
+   ```
+   
+   though the expansion is different. This code tries to make sure,
+   that tail calls can be eliminated by the compiler.
+   
+ - **Macro** `label` _name_ `(&rest` _bindings_`)` `&body` _body_
+ 
