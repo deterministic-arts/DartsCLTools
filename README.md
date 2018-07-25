@@ -46,7 +46,7 @@ property support:
 Given an object of a type, which supports these functions, the following
 accessors and modifiers work out-of-the-box.
 
- - **Function** `property-value` _object_ _indicator_ `&optional` _default &rarr; _value_ _foundp_
+ - **Function** `property-value` _object_ _indicator_ `&optional` _default_ &rarr; _value_ _foundp_
  
    Looks up the property with the given _indicator_ (a symbol) in
    the property list associated with _object_. If the property is
@@ -81,10 +81,14 @@ by various other functions provided here.
    This function returns as primary value _foundp_ a flag, which
    indicates, whether the property did already exists (true), or 
    not (false). The second value _stored-value_ is the property 
-   value associated with the given _indicator_ after the call. If
-   the property did already exist, it is the "old" value. If the
-   constructor had to be invoked, it is the value obtained from
-   it and stored in the new plist.
+   value associated with the given _indicator_ after the call. 
+   
+   Note, that even if the constructor function is invoked by this
+   function, there is no guarantee as to whether its return value
+   actually makes it into the "final" version of the property 
+   list. The _stored-value_ returned by this function may be
+   one installed by a concurrently running thread winning the 
+   race.
    
  - **Function** `remove-property` _object_ _indicator_ &rarr; _value_ _foundp_
  
