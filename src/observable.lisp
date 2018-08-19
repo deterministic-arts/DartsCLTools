@@ -52,12 +52,12 @@
 
 (macrolet
     ((update-place (place old-form new-form)
-       #+SBCL
-       (let ((temp (gensym)))
-         `(let ((,temp ,old-form))
-            (eq ,temp (sb-ext:compare-and-swap ,place ,temp ,new-form))))
-       #-SBCL
-       `(progn (setf ,place ,new-form) t)))
+       (let ((o (gensym))
+             (n (gensym)))
+         `(let ((,o ,old-form) (,n ,new-form))
+            (or (eq ,o ,n)
+                #+SBCL (eq ,o (sb-ext:compare-and-swap ,place ,o ,n))
+                #-SBCL (progn (setf ,place ,n) t))))))
 
 (defun add-observer-to-chain (observer chain &key (test #'eql) (key #'identity) (identity (funcall key observer)))
   (loop
