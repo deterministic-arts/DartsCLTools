@@ -94,39 +94,34 @@
 
 nil)                                    ; macrolet
 
+(defmacro do-observers-in-chain ((observer-var &rest aux-bindings) chain-form &body body)
+  (let ((spine (gensym "CHAIN"))
+        (inner (gensym "INNER"))
+        (skip (gensym "SKIP"))
+        (advance (gensym "ADVANCE"))
+        (done (gensym "DONE"))
+        (invoke (gensym "INVOKE")))
+    `(let ((,spine ,chain-form)
+           ,inner)
+       (tagbody
+          ,skip
+          (unless ,spine (go ,done))
+          (unless (setf ,inner (pop ,spine)) (go ,skip))
+          (let* (,@aux-bindings)
+            (tagbody
+               ,invoke
+               (let ((,observer-var (pop ,inner))) ,@body)
+               (when ,inner (go ,invoke))
+               ,advance
+               (unless ,spine (go ,done))
+               (unless (setf ,inner (pop ,spine)) (go ,advance))
+               (go ,invoke)))
+          ,done))))
+
 (defun notify-observers-in-chain (chain object event)
   (dolist (link chain)
     (dolist (observer link)
       (observe-event observer object event))))
-
-(defmacro notifying-observers-in-chain (chain-form object-form event-form)
-  (let ((event-var (gensym "EVENT"))
-        (object-var (gensym "OBJECT"))
-        (outer-var (gensym "CHAIN"))
-        (inner-var (gensym "OBSERVERS"))
-        (next-outer-link (gensym "NEXT-OUTER"))
-        (next-outer-link-2 (gensym "NEXT-OUTER-2"))
-        (next-inner (gensym "NEXT-INNER"))
-        (done (gensym "DONE")))
-    `(let ((,outer-var ,chain-form)
-           ,object-var ,event-var
-           ,inner-var)
-       (tagbody 
-         ,next-outer-link
-          (unless ,outer-var (go ,done))
-          (setf ,inner-var (pop ,outer-var))
-          (unless ,inner-var (go ,next-outer-link))
-          (setf ,object-var ,object-form)
-          (setf ,event-var ,event-form)
-         ,next-inner
-          (observe-event (pop ,inner-var) ,object-var ,event-var)
-          (when ,inner-var (go ,next-inner))
-         ,next-outer-link-2
-          (unless ,outer-var (go ,done))
-          (if (setf ,inner-var (pop ,outer-var))
-              (go ,next-inner)
-              (go ,next-outer-link-2))
-          ,done))))
 
 
 
@@ -154,3 +149,4 @@ nil)                                    ; macrolet
   (with-slots (observer-list-chain) object
     (dolist (ob (car observer-list-chain))
       (observe-event ob object event))))
+
