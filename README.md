@@ -4,9 +4,7 @@
 This is a small library of more or less useful stuff. Most things in
 here used to be carried over from project to project via copy+paste.
 
-## Documentation
-
-### Generic Property List Support
+## Generic Property List Support
 
 Sometimes it is handy, if an application can store additional data
 in objects managed by other (say: library) code. One way to achieve
@@ -138,8 +136,6 @@ by various other functions provided here.
 
    This function returns another plist, which contains all 
    the key/value pairs removed.
-
-### Iteration
 
  - **Function** `map-over-properties` _function_ _object_ &rarr; _object_
  
