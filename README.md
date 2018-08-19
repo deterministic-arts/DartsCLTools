@@ -115,14 +115,26 @@ by various other functions provided here.
    This function returns another plist, which contains all 
    the key/value pairs removed.
    
- - **Function** `filter-properties` _predicate_ _object_ &rarr; _removed_
+ - **Function** `remove-properties-if-not` _predicate_ _object_ &rarr; _removed_
+
+   This is a generalized version of `remove-properties`, which
+   removes all those entries, that do not match _predicate_. The value
+   of _predicate_ must be a function of two arguments. The first
+   one is the property indicator, and the second one the associated
+   value. If the function returns true, the property kept, otherwise
+   it is removed from the property list.
+
+   This function returns another plist, which contains all 
+   the key/value pairs removed.
+ 
+ - **Function** `remove-properties-if` _predicate_ _object_ &rarr; _removed_
  
    This is a generalized version of `remove-properties`, which
    removes all those entries, that match _predicate_. The value
    of _predicate_ must be a function of two arguments. The first
    one is the property indicator, and the second one the associated
-   value. If the function returns true, the property kept, otherwise
-   it is removed from the property list.
+   value. If the function returns true, the property is removed, 
+   otherwise it is kept in the property list.
 
    This function returns another plist, which contains all 
    the key/value pairs removed.

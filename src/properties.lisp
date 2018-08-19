@@ -135,14 +135,10 @@
         (values (second list) t)
         (values nil nil))))
 
-(defun filter-properties (predicate object)
-  "Modifies `object''s property list, preserving only those 
-   properties, for which `predicate' returns true. The predicate
-   must be a function of two arguments, the first of which will
-   be the property name, and the second of which is the associated
-   value. Note, that the function may be called multiple times
-   for any property of `object'. This function returns a property
-   list of all entries, that have been removed."
+(defun remove-properties-if (predicate object)
+  (remove-properties-if-not (complement predicate) object))
+
+(defun remove-properties-if-not (predicate object)
   (labels
       ((modify (old-list)
          (loop
