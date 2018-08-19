@@ -287,13 +287,53 @@ level mixin-class.
 
  - **Generic Function** `add-observer` _observer_ _source_ `&key` _test_ _key_ _identity_ &rarr; _result_ _found_
  
+   Add the given _observer_ to _source_'s set of registered
+   event observers, unless it is already present.
+   
+   This function tests for the presence of _observer_ by searching
+   for an element _e_ among the observers, whose key value (i.e., 
+   the result of applying the _key_ function to _e_) compares equal
+   to the _identity_ value according to the _test_ predicate. The
+   default _key_ function is `identity`, and the default _test_
+   predicate is `eql`. Unless explicitly supplied otherwise, the
+   _identity_ value searched for is `(funcall key observer)`.
+   
+   If the observer is not yet present, it is added. The _result_ is 
+   _observer_ in this case, and _found_ is false. If the observer 
+   is already present, the value of _result_ is the one found, 
+   and _found_ is true.
+ 
  - **Generic Function** `remove-observer` _observer_ _source_ `&key` _test_ _key_ &rarr; _result_ _found_
+ 
+   Removes the observer object from the set of observers of _source_,
+   whose key value (the result of applying _key_ to the object) is 
+   equal to _observer_ according to the _test_ predicate. The
+   default _key_ function is `identity`, and the default _test_
+   predicate is `eql`.
+   
+   If no matching observer is found, the value of _result_ is `nil`,
+   and _found_ is false. Otherwise, the matching entry is removed 
+   destructively, and returned as _result_ from this function; 
+   _found_ is true in this case.
  
  - **Generic Function** `notify-observers` _source_ _event_ &rarr; _undefined_
  
+   Notify all observers registered on _source_, that the event 
+   described by _event_ has occurred. This is a nop, if no observers
+   have been registered for _source_.
+ 
  - **Generic Function** `observe-event` _observer_ _source_ _event_ &rarr; _undefined_
+  
+   Invoked to notify _observer_, that the event described by _event_
+   has occurred with respect to object _source_. There is no default
+   method. 
  
  - **Class** `observable`
+ 
+   A class, which can be mixed into your application's hierarchy in
+   order to provide simple event notifications. Client code can add
+   and remove observers using the high-level API to instances of this
+   class. Event notifications can be published via `notify-observers`.
  
 ### Low-Level API
 
@@ -354,11 +394,50 @@ the hierarchy:
  
  This ordering is guaranteed by the implementation, though the
  order of invocation within each of these scopes is undefined.
-
-
+ 
  - **Function** `add-observer-to-chain` _observer_ _chain_ `&key` _test_ _key_ _identity_ &rarr; _result_ _found_
 
+   Add the given _observer_ to the chain, whose container cell is
+   the given _chain_, i.e., to the list stored in _chain_'s `car`.
+   If the observer is already present, the chain is not modified.
+   
+   This function tests for the presence of _observer_ by searching
+   for an element _e_ in the observer list, whose key value (i.e., 
+   the result of applying the _key_ function to _e_) compares equal
+   to the _identity_ value according to the _test_ predicate. The
+   default _key_ function is `identity`, and the default _test_
+   predicate is `eql`. Unless explicitly supplied otherwise, the
+   _identity_ value searched for is `(funcall key observer)`.
+   
+   If the observer is not yet present, it is added by destructively
+   modifying the _chain_. The _result_ is _observer_ in this case,
+   and _found_ is false. If the observer is already present, the
+   value of _result_ is the one found, and _found_ is true.
+   
+   Note, that this function will only destructively modify the cons 
+   cell _chain_, never the observer list found in the `car`. A 
+   copy is created if necessary, which may share structure with the
+   original list. This is guaranteed regardless of wether the Lisp
+   implementation supports atomic updates or not.
+
  - **Function** `remove-observer-from-chain` _observer_ _chain_ `&key` _test_ _key_ &rarr; _result_ _found_
+ 
+   Removes the observer object from the chain _chain_, whose
+   key value (the result of applying _key_ to the object) is equal
+   to _observer_ according to the _test_ predicate. The
+   default _key_ function is `identity`, and the default _test_
+   predicate is `eql`.
+   
+   If no matching observer is found, the value of _result_ is `nil`,
+   and _found_ is false. The _chain_ is not modified in this case.
+   Otherwise, the matching entry is removed destructively, and returned 
+   as _result_ from this function; _found_ is true in this case.
+   
+   Note, that this function will only destructively modify the cons 
+   cell _chain_, never the observer list found in the `car`. A 
+   copy is created if necessary, which may share structure with the
+   original list. This is guaranteed regardless of wether the Lisp
+   implementation supports atomic updates or not.
  
  - **Function** `notify-observers-in-chain` _chain_ _source_ _event_ &rarr; _undefined_
  
