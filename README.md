@@ -277,6 +277,127 @@ right now.
    
  - **Macro** `label` _name_ `(&rest` _bindings_`)` `&body` _body_
  
+## Event Notification
+
+This library provides a simple facility for event notifications. The
+feature is split into low-level support code, and a ready to use high 
+level mixin-class.
+
+### High-Level API
+
+ - **Generic Function** `add-observer` _observer_ _source_ `&key` _test_ _key_ _identity_ &rarr; _result_ _found_
+ 
+ - **Generic Function** `remove-observer` _observer_ _source_ `&key` _test_ _key_ &rarr; _result_ _found_
+ 
+ - **Generic Function** `notify-observers` _source_ _event_ &rarr; _undefined_
+ 
+ - **Generic Function** `observe-event` _observer_ _source_ _event_ &rarr; _undefined_
+ 
+ - **Class** `observable`
+ 
+### Low-Level API
+
+An "observer chain" (or "chain" for brevity here) is a list of lists
+
+    (observers1 observers2 ...)
+    
+where the elements of each sublist `observersk` are the actual observer
+objects. There are two points to this
+
+ - on implementations, that provide atomic compare-and-set operations
+   for the slots of cons cells, we can update the observer lists in a 
+   thread-safe way without having to take a lock
+   
+ - it allows us to easily implement nested scopes, where the occurence
+   of an event in object `X` should also be propagated to the observers
+   registered on `X`'s set of ancestors in some application-defined
+   hierarchy.
+   
+The first use case is taken care of automatically by the functions
+documented below in Lisp implementations, which provide the required
+base set of features (currently SBCL via `sb-ext:compare-and-swap`,
+but it should be possible to support other implementations, too, since
+many provide this feature in one way or another).
+
+The second use case requires cooperation of your application. Consider
+the following example:
+
+```
+(defvar *global-chain* (list nil))
+
+(defclass session ()
+  ((local-chain :initarg :local-chain)))
+  
+(defclass transaction ()
+  ((local-chain :initarg :local-chain)))
+  
+(defun start-session ()
+  (make-instance 'session :local-chain (cons nil *global-chain*)))
+  
+(defun begin-transaction (session)
+  (make-instance 'transaction 
+                  :local-chain (cons nil (slot-value session 'local-chain))))
+                  
+(defun commit-transaction (transaction &rest keys)
+  ;; Do whatever needs to be done...
+  (notify-observers-in-chain (slot-value transaction 'local-chain)
+                             transaction `(commit :status :success ,@keys)))
+```
+
+In this scenario, when a transaction is committed, the event
+notification is automatically propagated across the "scopes" of
+the hierarchy:
+
+ - first, all observers on the transaction instance itself are notified,
+ - then the observers registered for the session, and finally
+ - all observers, that had been registered in global scope.
+ 
+ This ordering is guaranteed by the implementation, though the
+ order of invocation within each of these scopes is undefined.
+
+
+ - **Function** `add-observer-to-chain` _observer_ _chain_ `&key` _test_ _key_ _identity_ &rarr; _result_ _found_
+
+ - **Function** `remove-observer-from-chain` _observer_ _chain_ `&key` _test_ _key_ &rarr; _result_ _found_
+ 
+ - **Function** `notify-observers-in-chain` _chain_ _source_ _event_ &rarr; _undefined_
+ 
+   Use the standard protocol function `observe-event` to notify 
+   each observer in the given _chain_, that the event described by
+   _event_ has occurred with respect to object _source_.
+ 
+ - **Macro** `do-observers-in-chain` `(` _observer-var_ `&rest` _bindings_ `)` _chain-form_ `&body` _body_ &rarr; `nil`
+ 
+   Evaluates _chain-form_ first. Loops over all observer objects in
+   the resulting chain. For each observer, binds _observer-var_ to that
+   object and evaluates the forms in _body_ like `progn`.
+ 
+   If _bindings_ are given, those are also made avaible during each
+   invocation of the body forms. The important point is, that the 
+   bindings are only established (and their initializer forms are
+   only executed) if there is at least one observer in the chain. Also,
+   each initializer form is evaluated at most once.
+   
+   Example
+   
+   ```
+   (do-observers-in-chain (observer 
+                           (event-count (count-events-in-database))
+                           (summary (compute-event-summary event-count))) some-chain
+      (notify-subscribers observer event-count summary))
+                                    
+   ```
+   
+   This macro is intended to be used, when the arguments, you need
+   to pass to event observers, are costly to compute (which the
+   example tries to imply), so you do not want to perform this computation,
+   unless you have at least one observer.
+   
+   Also, this macro allows you to choose any code whatsoever to be
+   used as the actual event notification; this allows the use of
+   custom generic functions instead of `observe-event` with differing
+   parameters. 
+ 
 ## Copyright
 
 This library is licensend under the terms of the MIT license:
