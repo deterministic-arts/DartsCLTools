@@ -41,4 +41,5 @@
     :components
     ((:file "packages")
      (:file "properties" :depends-on ("packages"))
-     (:file "iteration" :depends-on ("packages"))))))
+     (:file "iteration" :depends-on ("packages"))
+     (:file "observable" :depends-on ("packages"))))))
