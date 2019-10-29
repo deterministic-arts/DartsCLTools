@@ -357,21 +357,14 @@ An "observer chain" (or "chain" for brevity here) is a list of lists
 where the elements of each sublist `observersk` are the actual observer
 objects. There are two points to this
 
- - on implementations, that provide atomic compare-and-set operations
-   for the slots of cons cells, we can update the observer lists in a 
-   thread-safe way without having to take a lock
+ - we can update the observer lists in a thread-safe way without having 
+   to take a lock via CAS. This is handled automatically by the library.
    
  - it allows us to easily implement nested scopes, where the occurence
    of an event in object `X` should also be propagated to the observers
    registered on `X`'s set of ancestors in some application-defined
    hierarchy.
    
-The first use case is taken care of automatically by the functions
-documented below in Lisp implementations, which provide the required
-base set of features (currently SBCL via `sb-ext:compare-and-swap`,
-but it should be possible to support other implementations, too, since
-many provide this feature in one way or another).
-
 The second use case requires cooperation of your application. Consider
 the following example:
 
@@ -464,8 +457,8 @@ the hierarchy:
    the resulting chain. For each observer, binds _observer-var_ to that
    object and evaluates the forms in _body_ like `progn`.
  
-   If _bindings_ are given, those are also made avaible during each
-   invocation of the body forms. The important point is, that the 
+   If _bindings_ are given, those are also made available during each
+   invocation of the body forms. The important point is that the 
    bindings are only established (and their initializer forms are
    only executed) if there is at least one observer in the chain. Also,
    each initializer form is evaluated at most once.
@@ -494,7 +487,7 @@ the hierarchy:
 
 This library is licensend under the terms of the MIT license:
 
-> Copyright (c) 2018 Dirk Esser
+> Copyright (c) 2019 Dirk Esser
 >
 > Permission is hereby granted, free of charge, to any person obtaining a copy
 > of this software and associated documentation files (the "Software"), to deal
@@ -513,4 +506,3 @@ This library is licensend under the terms of the MIT license:
 > LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 > THE SOFTWARE.
-
