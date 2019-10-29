@@ -36,10 +36,10 @@ property support:
    The second value is arbitrary and will be returned from 
    `update-property-list`.
    
-   In lisp implementations, where it can be easily implemented, the
-   update process happens atomically. Note, that in such an
-   implementation, the _modifier_ function can be called multiple
-   times. For this reason, side-effects should be avoided.
+   The update process happens atomically. The _modifier_ function
+   must be prepared to call multiple times in case the implementation
+   detects a race with some other thread updating the same list 
+   concurrently. It should, in particular, not have side-effects.
 
 Given an object of a type, which supports these functions, the following
 accessors and modifiers work out-of-the-box.
@@ -230,6 +230,11 @@ Example:
   
 (define-structure-property-list handle handle-plist)
 ```
+
+### Atomic Updates
+
+The implementation in this library updates the property lists
+atomically. 
 
 ### Missing Support for `SYMBOL-PLIST`
 

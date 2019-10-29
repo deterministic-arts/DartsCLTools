@@ -43,6 +43,10 @@
   (:documentation "Notifies all registered event observers of `object`
     about the occurence of `event`."))
 
+(defgeneric parent-observer-chain (object)
+  (:method (object) (declare (ignore object)) nil)
+  (:documentation ""))
+
 
 
 ;;; The following definitions represent a variation of the theme on a
@@ -56,8 +60,7 @@
              (n (gensym)))
          `(let ((,o ,old-form) (,n ,new-form))
             (or (eq ,o ,n)
-                #+SBCL (eq ,o (sb-ext:compare-and-swap ,place ,o ,n))
-                #-SBCL (progn (setf ,place ,n) t))))))
+                (atomics:cas ,place ,o ,n))))))
 
 (defun add-observer-to-chain (observer chain &key (test #'eql) (key #'identity) (identity (funcall key observer)))
   (loop
@@ -130,7 +133,7 @@ nil)                                    ; macrolet
 
 (defmethod shared-initialize :after ((object observable) slots &key)
   (declare (ignore slots))
-  (setf (slot-value object 'observer-list-chain) (list nil)))
+  (setf (slot-value object 'observer-list-chain) (cons nil (parent-observer-chain object))))
 
 (defmethod add-observer (observer (object observable)
                          &key (test #'eql) (key #'identity) (identity (funcall key observer)))
@@ -147,6 +150,7 @@ nil)                                    ; macrolet
 
 (defmethod notify-observers ((object observable) event)
   (with-slots (observer-list-chain) object
-    (dolist (ob (car observer-list-chain))
-      (observe-event ob object event))))
+    (dolist (chain observer-list-chain)
+      (dolist (ob chain)
+        (observe-event ob object event)))))
 

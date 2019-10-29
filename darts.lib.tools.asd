@@ -35,7 +35,7 @@
   :licence "MIT"
   :description "More or less useful utilities"
   :long-description ""
-  :depends-on ()
+  :depends-on (atomics)
   :components
   ((:module :src
     :components

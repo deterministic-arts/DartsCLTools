@@ -153,54 +153,29 @@
     (update-property-list object #'modify)))
 
 
-#+SBCL 
-(progn
-  (deftype plist-cell () '(cons null list))
+(deftype plist-cell () '(cons null list))
   
-  (defmacro make-plist-cell (&optional inits)
-    `(cons nil ,inits))
+(defmacro make-plist-cell (&optional inits)
+  `(cons nil ,inits))
   
-  (defmacro plist-cell-read (cell-form)
-    `(cdr ,cell-form))
+(defmacro plist-cell-read (cell-form)
+  `(cdr ,cell-form))
   
-  (defmacro plist-cell-update (cell-form modifier-form)
-    (let ((cell-val (gensym))
-          (modifier (gensym))
-          (new-value (gensym))
-          (old-value (gensym))
-          (result (gensym))
-          (done (gensym)))
-      `(let ((,cell-val ,cell-form)
-             (,modifier ,modifier-form))
-         (loop named ,done do
-           (let ((,old-value (cdr ,cell-val)))
-             (multiple-value-bind (,new-value ,result) (funcall ,modifier ,old-value)
-               (when (or (eq ,old-value ,new-value)
-                         (eq ,old-value (sb-ext:compare-and-swap (cdr ,cell-val) ,old-value ,new-value)))
-                 (return-from ,done ,result)))))))))
-
-#-SBCL
-(progn
-  (deftype plist-cell () '(cons null list))
-  
-  (defmacro make-plist-cell (&optional inits)
-    `(cons nil ,inits))
-
-  (defmacro plist-cell-read (cell-form)
-    `(cdr ,cell-form))
-
-  (defmacro plist-cell-update (cell-form modifier-form)
-    (let ((cell-val (gensym))
-          (modifier (gensym))
-          (new-value (gensym))
-          (old-value (gensym))
-          (result (gensym)))
-      `(let ((,cell-val ,cell-form)
-             (,modifier ,modifier-form))
+(defmacro plist-cell-update (cell-form modifier-form)
+  (let ((cell-val (gensym))
+        (modifier (gensym))
+        (new-value (gensym))
+        (old-value (gensym))
+        (result (gensym))
+        (done (gensym)))
+    `(let ((,cell-val ,cell-form)
+           (,modifier ,modifier-form))
+       (loop named ,done do
          (let ((,old-value (cdr ,cell-val)))
            (multiple-value-bind (,new-value ,result) (funcall ,modifier ,old-value)
-             (setf (cdr ,cell-val) ,new-value)
-             ,result))))))
+             (when (or (eq ,old-value ,new-value)
+                       (atomics:cas (cdr ,cell-val) ,old-value ,new-value))
+               (return-from ,done ,result))))))))
 
 
 (defclass property-support ()
@@ -210,15 +185,9 @@
     all instances gain support for function `property' and
     all related functions. The property list is (re-) initializable;
     note, however, that the initarg is named `property-list'
-    as exported from this package, *not* by a keyword symbol."
-    #+SBCL "
-
-    The property lists of instances of this class are upated atomically
-    in this lisp."
-    #-SBCL "
-
-    The property lists of instances of this class are not updated
-    atomically in this lisp.")))
+    as exported from this package, *not* by a keyword symbol.
+    The property lists of instances of this class are upated 
+    atomically.")))
 
 (defmethod shared-initialize :after ((object property-support) slots &key ((property-list plist) nil got-plist))
   (declare (ignore slots))
@@ -249,19 +218,8 @@
           do (let ((old-list (,accessor object)))
                (multiple-value-bind (new-list result) (funcall modifier old-list)
                  (when (or (eq old-list new-list)
-                           (eq old-list (sb-ext:compare-and-swap (,accessor object) old-list new-list)))
+                           (atomics:cas (,accessor object) old-list new-list))
                    (return-from done result))))))))
-
-#-SBCL
-(defmacro define-structure-property-list (structure-type accessor)
-  `(progn
-     (defmethod property-list ((object ,structure-type))
-       (,accessor object))
-     (defmethod update-property-list ((object ,structure-type) modifier)
-       (let ((old-list (,accessor object)))
-         (multiple-value-bind (new-list result) (funcall modifier old-list)
-           (setf (,accessor object) new-list)
-           result)))))
 
 
 
