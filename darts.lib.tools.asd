@@ -1,6 +1,6 @@
 #|                                           -*- mode: lisp; coding: utf-8 -*-
   Deterministic Arts -- Tools And Utilities
-  Copyright (c) 2018, 2019 Dirk Esser
+  Copyright (c) 2018, 2019, 2020 Dirk Esser
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -21,11 +21,11 @@
   THE SOFTWARE.
 |#
 
-(in-package "COMMON-LISP-USER")
+(in-package #:common-lisp-user)
 
-(defpackage "DARTS.ASDF" (:use "COMMON-LISP" "ASDF"))
+(defpackage #:darts.asdf (:use #:common-lisp #:asdf))
 
-(in-package "DARTS.ASDF")
+(in-package #:darts.asdf)
 
 (defsystem :darts.lib.tools
   :name "darts.lib.tools"

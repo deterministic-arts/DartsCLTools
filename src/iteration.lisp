@@ -1,6 +1,6 @@
 #|                                           -*- mode: lisp; coding: utf-8 -*-
   Deterministic Arts -- Tools And Utilities
-  Copyright (c) 2018, 2019 Dirk Esser
+  Copyright (c) 2018, 2019, 2020 Dirk Esser
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,7 @@
   THE SOFTWARE.
 |#
 
-(in-package "DARTS.LIB.TOOLS")
+(in-package #:darts.lib.tools)
 
 (defmacro label (name (&rest bindings) &body body)
   `(labels ((,name ,(mapcar #'first bindings) ,@body))

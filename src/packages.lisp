@@ -1,6 +1,6 @@
 #|                                           -*- mode: lisp; coding: utf-8 -*-
   Deterministic Arts -- Tools And Utilities
-  Copyright (c) 2018, 2019 Dirk Esser
+  Copyright (c) 2018, 2019, 2020 Dirk Esser
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -21,17 +21,17 @@
   THE SOFTWARE.
 |#
 
-(defpackage "DARTS.LIB.TOOLS"
-  (:use "COMMON-LISP")
+(defpackage #:darts.lib.tools
+  (:use #:common-lisp)
   (:export
-     "PROPERTY-LIST" "UPDATE-PROPERTY-LIST" "PROPERTY-VALUE"
-     "REMOVE-PROPERTIES" "ENSURE-PROPERTY" "PROPERTY-SUPPORT"
-     "DEFINE-STRUCTURE-PROPERTY-LIST" "MAP-OVER-PROPERTIES"
-     "DO-PROPERTIES" "REMOVE-PROPERTIES-IF" "REMOVE-PROPERTIES-IF-NOT"
-     "REMOVE-PROPERTY"
+     #:property-list #:update-property-list #:property-value
+     #:remove-properties #:ensure-property #:property-support
+     #:define-structure-property-list #:map-over-properties
+     #:do-properties #:remove-properties-if #:remove-properties-if-not
+     #:remove-property
 
-     "NAMED-LOOP" "LABEL"
+     #:named-loop #:label
      
-     "OBSERVABLE" "ADD-OBSERVER" "REMOVE-OBSERVER" "OBSERVE-EVENT"
-     "NOTIFY-OBSERVERS" "ADD-OBSERVER-TO-CHAIN" "REMOVE-OBSERVER-FROM-CHAIN"
-     "DO-OBSERVERS-IN-CHAIN" "NOTIFY-OBSERVERS-IN-CHAIN" "PARENT-OBSERVER-CHAIN"))
+     #:observable #:add-observer #:remove-observer #:observe-event
+     #:notify-observers #:add-observer-to-chain #:remove-observer-from-chain
+     #:do-observers-in-chain #:notify-observers-in-chain #:parent-observer-chain))
