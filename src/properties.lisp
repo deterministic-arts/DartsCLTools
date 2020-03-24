@@ -91,6 +91,20 @@
     value))
 
 (defun ensure-property (object indicator constructor)
+  "Makes sure, that `object' has a property named `indicator'. If
+   such a property already exists, this function does nothing. Otherwise,
+   the function calls the `constructor' function to generate a value, and
+   stores it as `indicator''s value in `object''s property list.
+
+   Note, that `constructor' may be called multiple times, and should
+   not have side-effects. Also, even if it is called, there are no
+   guarantees, that any value returned by it gets actually installed
+   in `object''s property list, since the call may lose the race with
+   another thread.
+
+   This function returns the value found (or constructed) as primary
+   result. The secondary result is `t' if the property already existed,
+   and `nil' if it has been installed by the call."
   (declare (dynamic-extent constructor))
   (let ((spot (update-property-list object
                 (lambda (old-list)
@@ -114,6 +128,14 @@
   object)
 
 (defun delete-properties (object &optional (which 't))
+  "Removes all properties listed in `which' from `object''s 
+   property list. If `which' is omitted or `t' (the default)
+   removes all properties. Otherwise, it must be a list
+   containing the indicators of all properties that should
+   be removed.
+
+   This function returns a plist of all key/value pairs
+   that have been removed by the call."
   (labels
       ((modify (old-list)
          (loop
@@ -130,15 +152,24 @@
         (update-property-list object #'modify))))
 
 (defun delete-property (object indicator)
+  "Delete the property named by `indicator' from `object''s property
+   list. Answers the value of the removed property as primary result.
+   The secondary value is a boolean flag that indicates, whether the
+   property has been found (and hence removed, `t') or not (`nil')."
   (let ((list (remove-properties object (list indicator))))
     (if list
         (values (second list) t)
         (values nil nil))))
 
-(defun delete-properties-if (predicate object)
-  (remove-properties-if-not (complement predicate) object))
-
 (defun delete-properties-if-not (predicate object)
+  "Deletes all properties from the property list of `object' that
+   fail to satisfy the predictate function `predicate'. The predicate must
+   be a function of two arguments returning a boolean value. The
+   first argument is the property's key, and the second argument
+   is the property's value.
+
+   This function returns a plist of all key/value pairs, that have
+   been removed by the call."
   (labels
       ((modify (old-list)
          (loop
@@ -151,6 +182,17 @@
                         (return (values old-list nil))
                         (return (values new-list removed))))))
     (update-property-list object #'modify)))
+
+(defun delete-properties-if (predicate object)
+  "Deletes all properties from the property list of `object' that
+   satisfy the predictate function `predicate'. The predicate must
+   be a function of two arguments returning a boolean value. The
+   first argument is the property's key, and the second argument
+   is the property's value.
+
+   This function returns a plist of all key/value pairs, that have
+   been removed by the call."
+  (delete-properties-if-not (complement predicate) object))
 
 (declaim (inline remove-properties remove-property remove-properties-if-not
                  remove-properties-if))
@@ -223,6 +265,22 @@
 
 #+SBCL
 (defmacro define-structure-property-list (structure-type accessor)
+  "Declares support for a property list slot in the given structure type.
+   For this to work, the given `accessor' must be a `setf'-able accessor
+   for some slot of type `structure-type', that should be declared to
+   have type `t' or `list'. E.g.:
+
+       (defstruct window
+         (plist nil)
+         (parent nil)
+         (title 'window))
+
+       (define-structure-property-list window window-plist)
+
+   A property list slot should usually never be assigned to directly,
+   since that may break the atomic update feature. Always manipulate
+   the contents of the property list slot via the functions provided
+   by this library."
   `(progn
      (defmethod property-list ((object ,structure-type))
        (,accessor object))
