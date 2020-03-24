@@ -28,7 +28,8 @@
      #:remove-properties #:ensure-property #:property-support
      #:define-structure-property-list #:map-over-properties
      #:do-properties #:remove-properties-if #:remove-properties-if-not
-     #:remove-property
+     #:remove-property #:delete-property #:delete-properties #:delete-properties-if
+     #:delete-properties-if-not
 
      #:named-loop #:label
      

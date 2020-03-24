@@ -88,7 +88,7 @@ by various other functions provided here.
    one installed by a concurrently running thread winning the 
    race.
    
- - **Function** `remove-property` _object_ _indicator_ &rarr; _value_ _foundp_
+ - **Function** `delete-property` _object_ _indicator_ &rarr; _value_ _foundp_
  
    Removes the property named by _indicator_ from the property list
    of _object_. The primary result _value_ is the form value 
@@ -97,7 +97,7 @@ by various other functions provided here.
    is true, if the property was found (and removed), and false,
    if no matching property exists.
  
- - **Function** `remove-properties` _object_ `&optional` _which_ &rarr; _removed_
+ - **Function** `delete-properties` _object_ `&optional` _which_ &rarr; _removed_
  
    Removes all properties from the property associated with
    _object_, which match the value of _which_. The following
@@ -113,7 +113,7 @@ by various other functions provided here.
    This function returns another plist, which contains all 
    the key/value pairs removed.
    
- - **Function** `remove-properties-if-not` _predicate_ _object_ &rarr; _removed_
+ - **Function** `delete-properties-if-not` _predicate_ _object_ &rarr; _removed_
 
    This is a generalized version of `remove-properties`, which
    removes all those entries, that do not match _predicate_. The value
@@ -125,7 +125,7 @@ by various other functions provided here.
    This function returns another plist, which contains all 
    the key/value pairs removed.
  
- - **Function** `remove-properties-if` _predicate_ _object_ &rarr; _removed_
+ - **Function** `delete-properties-if` _predicate_ _object_ &rarr; _removed_
  
    This is a generalized version of `remove-properties`, which
    removes all those entries, that match _predicate_. The value
@@ -159,6 +159,25 @@ by various other functions provided here.
    this macro establishes an anonymous block around its expansion.
    Unless _body_ establishes a result value by `return`ing from
    that block, the result of the `do-properties` form is `nil`.
+   
+The following functions exist for compatibility reasons. They should not
+be used in new code:
+
+ - **Function** `remove-properties` _object_ `&optional` _which_ &rarr; _removed_
+ 
+   Old name of `delete-properties`. Obsolete.
+
+ - **Function** `remove-property` _object_ _indicator_ &rarr; _value_ _found_
+ 
+   Old name of `delete-property`. Obsolete.
+
+ - **Function** `remove-properties-if` _predicate_ _object_ &rarr; _removed_
+ 
+   Old name of `delete-properties-if`. Obsolete.
+
+ - **Function** `remove-properties-if-not` _predicate_ _object_ &rarr; _removed_
+ 
+   Old name of `delete-properties-if-not`. Obsolete.
    
 ### DEFSTRUCT and CLOS Support
 
@@ -235,6 +254,11 @@ Example:
 
 The implementation in this library updates the property lists
 atomically. 
+
+**Important** If you want to use the structure property list feature
+with ECL, you want to define the structure type with `atomics:defstruct`
+instead of `cl:defstruct` in order to get special atomic accessor
+support.
 
 ### Missing Support for `SYMBOL-PLIST`
 

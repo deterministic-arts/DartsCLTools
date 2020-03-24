@@ -113,7 +113,7 @@
     do (funcall function key value))
   object)
 
-(defun remove-properties (object &optional (which 't))
+(defun delete-properties (object &optional (which 't))
   (labels
       ((modify (old-list)
          (loop
@@ -129,16 +129,16 @@
         (update-property-list object (lambda (list) (values nil list)))
         (update-property-list object #'modify))))
 
-(defun remove-property (object indicator)
+(defun delete-property (object indicator)
   (let ((list (remove-properties object (list indicator))))
     (if list
         (values (second list) t)
         (values nil nil))))
 
-(defun remove-properties-if (predicate object)
+(defun delete-properties-if (predicate object)
   (remove-properties-if-not (complement predicate) object))
 
-(defun remove-properties-if-not (predicate object)
+(defun delete-properties-if-not (predicate object)
   (labels
       ((modify (old-list)
          (loop
@@ -152,6 +152,20 @@
                         (return (values new-list removed))))))
     (update-property-list object #'modify)))
 
+(declaim (inline remove-properties remove-property remove-properties-if-not
+                 remove-properties-if))
+
+(defun remove-properties (object &optional (which 't))
+  (delete-properties object which))
+
+(defun remove-property (object indicator)
+  (delete-property object indicator))
+
+(defun remove-properties-if (predicate object)
+  (delete-properties-if predicate object))
+
+(defun remove-properties-if-not (predicate object)
+  (delete-properties-if-not predicate object))
 
 (deftype plist-cell () '(cons null list))
   
@@ -180,14 +194,14 @@
 
 (defclass property-support ()
   ((property-list :type plist-cell))
-  (:documentation #.(concatenate 'string "Minimal mix-in class, which supports the object
+  (:documentation "Minimal mix-in class, which supports the object
     annotation protocol. By mixing this class into a class hierarchy,
     all instances gain support for function `property' and
     all related functions. The property list is (re-) initializable;
     note, however, that the initarg is named `property-list'
     as exported from this package, *not* by a keyword symbol.
     The property lists of instances of this class are upated 
-    atomically.")))
+    atomically."))
 
 (defmethod shared-initialize :after ((object property-support) slots &key ((property-list plist) nil got-plist))
   (declare (ignore slots))
