@@ -35,4 +35,6 @@
      
      #:observable #:add-observer #:remove-observer #:observe-event
      #:notify-observers #:add-observer-to-chain #:remove-observer-from-chain
-     #:do-observers-in-chain #:notify-observers-in-chain #:parent-observer-chain))
+     #:do-observers-in-chain #:notify-observers-in-chain #:parent-observer-chain
+     #:make-observer-chain #:observer-chain-entries #:observer-chain-next
+     #:observer-chain-p))

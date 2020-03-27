@@ -374,12 +374,14 @@ level mixin-class.
  
 ### Low-Level API
 
-An "observer chain" (or "chain" for brevity here) is a list of lists
+An "observer chain" (or "chain" for brevity here) is (kind of a) list 
+of lists
 
     (observers1 observers2 ...)
     
 where the elements of each sublist `observersk` are the actual observer
-objects. There are two points to this
+objects. Internally, we use a special structure type for the outer spine
+for technical reasons. There are two points to this
 
  - we can update the observer lists in a thread-safe way without having 
    to take a lock via CAS. This is handled automatically by the library.
@@ -393,7 +395,7 @@ The second use case requires cooperation of your application. Consider
 the following example:
 
 ```
-(defvar *global-chain* (list nil))
+(defvar *global-chain* (make-observer-chain))
 
 (defclass session ()
   ((local-chain :initarg :local-chain)))
@@ -402,11 +404,11 @@ the following example:
   ((local-chain :initarg :local-chain)))
   
 (defun start-session ()
-  (make-instance 'session :local-chain (cons nil *global-chain*)))
+  (make-instance 'session :local-chain (make-observer-chain *global-chain*)))
   
 (defun begin-transaction (session)
   (make-instance 'transaction 
-                  :local-chain (cons nil (slot-value session 'local-chain))))
+                  :local-chain (make-observer-chain (slot-value session 'local-chain))))
                   
 (defun commit-transaction (transaction &rest keys)
   ;; Do whatever needs to be done...
@@ -428,8 +430,8 @@ the hierarchy:
  - **Function** `add-observer-to-chain` _observer_ _chain_ `&key` _test_ _key_ _identity_ &rarr; _result_ _found_
 
    Add the given _observer_ to the chain, whose container cell is
-   the given _chain_, i.e., to the list stored in _chain_'s `car`.
-   If the observer is already present, the chain is not modified.
+   the given _chain_. If the observer is already present, the chain 
+   is not modified.
    
    This function tests for the presence of _observer_ by searching
    for an element _e_ in the observer list, whose key value (i.e., 
@@ -443,16 +445,10 @@ the hierarchy:
    modifying the _chain_. The _result_ is _observer_ in this case,
    and _found_ is false. If the observer is already present, the
    value of _result_ is the one found, and _found_ is true.
-   
-   Note, that this function will only destructively modify the cons 
-   cell _chain_, never the observer list found in the `car`. A 
-   copy is created if necessary, which may share structure with the
-   original list. This is guaranteed regardless of wether the Lisp
-   implementation supports atomic updates or not.
 
  - **Function** `remove-observer-from-chain` _observer_ _chain_ `&key` _test_ _key_ &rarr; _result_ _found_
  
-   Removes the observer object from the chain _chain_, whose
+   Removes the observer object from the chain link _chain_, whose
    key value (the result of applying _key_ to the object) is equal
    to _observer_ according to the _test_ predicate. The
    default _key_ function is `identity`, and the default _test_
@@ -462,12 +458,6 @@ the hierarchy:
    and _found_ is false. The _chain_ is not modified in this case.
    Otherwise, the matching entry is removed destructively, and returned 
    as _result_ from this function; _found_ is true in this case.
-   
-   Note, that this function will only destructively modify the cons 
-   cell _chain_, never the observer list found in the `car`. A 
-   copy is created if necessary, which may share structure with the
-   original list. This is guaranteed regardless of wether the Lisp
-   implementation supports atomic updates or not.
  
  - **Function** `notify-observers-in-chain` _chain_ _source_ _event_ &rarr; _undefined_
  

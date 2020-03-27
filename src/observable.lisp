@@ -54,6 +54,17 @@
 ;;; can also use these functions in the implementations of the higher
 ;;; level mechanism, that we provide below.
 
+(atomics:defstruct (observer-chain (:copier nil)
+                                   (:constructor make-observer-chain (&optional next))
+                                   (:predicate observer-chain-p))
+  (entries nil)
+  (next nil :type (or null observer-chain) :read-only t))
+
+(defmethod print-object ((object observer-chain) stream)
+  (print-unreadable-object (object stream :type t :identity t)
+    (format stream "SIZE=~D~@[ PARENT=~S~]" (length (observer-chain-entries object)) (observer-chain-next object)))
+  object)
+
 (macrolet
     ((update-place (place old-form new-form)
        (let ((o (gensym))
@@ -64,19 +75,19 @@
 
 (defun add-observer-to-chain (observer chain &key (test #'eql) (key #'identity) (identity (funcall key observer)))
   (loop
-    (let* ((old-list (car chain))
+    (let* ((old-list (observer-chain-entries chain))
            (present (member identity old-list :key key :test test)))
       (if present
           (return-from add-observer-to-chain (values (car present) nil))
           (let ((new-list (cons observer old-list)))
-            (when (update-place (car chain) old-list new-list)
+            (when (update-place (observer-chain-entries chain) old-list new-list)
               (return-from add-observer-to-chain (values observer t))))))))
 
 (defun remove-observer-from-chain (observer chain &key (test #'eql) (key #'identity))
   (macrolet ((test (v1 v2) `(funcall test ,v1 ,v2))
              (key (value) `(funcall key ,value)))
     (loop
-       (let ((old-list (car chain)))
+       (let ((old-list (observer-chain-entries chain)))
          (multiple-value-bind (new-list old-observer found)
              (cond
                ((null old-list) (values old-list nil nil))
@@ -92,7 +103,7 @@
                          do (setf (cdr tail) (cdr link))
                             (return (values head elt t))
                        finally (return (values old-list nil nil))))))
-           (when (or (not found) (update-place (car chain) old-list new-list))
+           (when (or (not found) (update-place (observer-chain-entries chain) old-list new-list))
              (return-from remove-observer-from-chain (values old-observer found))))))))
 
 nil)                                    ; macrolet
@@ -109,7 +120,10 @@ nil)                                    ; macrolet
        (tagbody
           ,skip
           (unless ,spine (go ,done))
-          (unless (setf ,inner (pop ,spine)) (go ,skip))
+          (multiple-value-setq (,inner ,spine)
+            (values (observer-chain-entries ,spine)
+                    (observer-chain-next ,spine)))
+          (unless ,inner (go ,skip))
           (let* (,@aux-bindings)
             (tagbody
                ,invoke
@@ -117,7 +131,10 @@ nil)                                    ; macrolet
                (when ,inner (go ,invoke))
                ,advance
                (unless ,spine (go ,done))
-               (unless (setf ,inner (pop ,spine)) (go ,advance))
+               (multiple-value-setq (,inner ,spine)
+                 (values (observer-chain-entries ,spine)
+                         (observer-chain-next ,spine)))
+               (unless ,inner (go ,advance))
                (go ,invoke)))
           ,done))))
 
@@ -133,7 +150,8 @@ nil)                                    ; macrolet
 
 (defmethod shared-initialize :after ((object observable) slots &key)
   (declare (ignore slots))
-  (setf (slot-value object 'observer-list-chain) (cons nil (parent-observer-chain object))))
+  (setf (slot-value object 'observer-list-chain)
+        (make-observer-chain (parent-observer-chain object))))
 
 (defmethod add-observer (observer (object observable)
                          &key (test #'eql) (key #'identity) (identity (funcall key observer)))
@@ -150,7 +168,8 @@ nil)                                    ; macrolet
 
 (defmethod notify-observers ((object observable) event)
   (with-slots (observer-list-chain) object
-    (dolist (chain observer-list-chain)
-      (dolist (ob chain)
-        (observe-event ob object event)))))
+    (loop
+       for link = observer-list-chain then (observer-chain-next link) while link
+       do (dolist (ob (observer-chain-entries link))
+            (observe-event ob object event)))))
 
