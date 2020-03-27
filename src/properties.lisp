@@ -263,7 +263,6 @@
 
 
 
-#+SBCL
 (defmacro define-structure-property-list (structure-type accessor)
   "Declares support for a property list slot in the given structure type.
    For this to work, the given `accessor' must be a `setf'-able accessor
