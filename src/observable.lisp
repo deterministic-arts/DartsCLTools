@@ -139,9 +139,10 @@ nil)                                    ; macrolet
           ,done))))
 
 (defun notify-observers-in-chain (chain object event)
-  (dolist (link chain)
-    (dolist (observer link)
-      (observe-event observer object event))))
+  (loop
+     for link = chain then (observer-chain-next link) while link
+     do (dolist (observer (observer-chain-entries link))
+          (observe-event observer object event))))
 
 
 
