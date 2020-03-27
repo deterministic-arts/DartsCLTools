@@ -209,16 +209,14 @@
 (defun remove-properties-if-not (predicate object)
   (delete-properties-if-not predicate object))
 
-(deftype plist-cell () '(cons null list))
-  
-(defmacro make-plist-cell (&optional inits)
-  `(cons nil ,inits))
-  
-(defmacro plist-cell-read (cell-form)
-  `(cdr ,cell-form))
-  
-(defmacro plist-cell-update (cell-form modifier-form)
-  (let ((cell-val (gensym))
+;;; CCL does not currently support a cons cell's CAR/CDR slots as atomically
+;;; modifiable places, so we need to hack this little structure here.
+#+ccl
+(progn
+  (defstruct (plist-cell (:constructor make-plist-cell (&optional value))) (value nil))
+  (defmacro plist-cell-read (form) `(plist-cell-value ,form))
+  (defmacro plist-cell-update (cell-form modifier-form)
+      (let ((cell-val (gensym))
         (modifier (gensym))
         (new-value (gensym))
         (old-value (gensym))
@@ -227,12 +225,32 @@
     `(let ((,cell-val ,cell-form)
            (,modifier ,modifier-form))
        (loop named ,done do
-         (let ((,old-value (cdr ,cell-val)))
+         (let ((,old-value (plist-cell-read ,cell-val)))
            (multiple-value-bind (,new-value ,result) (funcall ,modifier ,old-value)
              (when (or (eq ,old-value ,new-value)
-                       (atomics:cas (cdr ,cell-val) ,old-value ,new-value))
-               (return-from ,done ,result))))))))
+                       (atomics:cas (plist-cell-value ,cell-val) ,old-value ,new-value))
+               (return-from ,done ,result)))))))))
 
+#+(or sbcl ecl lispworks allegro)
+(progn
+  (deftype plist-cell () '(cons null list))
+  (defmacro make-plist-cell (&optional inits) `(cons nil ,inits))
+  (defmacro plist-cell-read (cell-form) `(cdr ,cell-form))
+  (defmacro plist-cell-update (cell-form modifier-form)
+    (let ((cell-val (gensym))
+          (modifier (gensym))
+          (new-value (gensym))
+          (old-value (gensym))
+          (result (gensym))
+          (done (gensym)))
+      `(let ((,cell-val ,cell-form)
+             (,modifier ,modifier-form))
+         (loop named ,done do
+              (let ((,old-value (cdr ,cell-val)))
+                (multiple-value-bind (,new-value ,result) (funcall ,modifier ,old-value)
+                  (when (or (eq ,old-value ,new-value)
+                            (atomics:cas (cdr ,cell-val) ,old-value ,new-value))
+                    (return-from ,done ,result)))))))))
 
 (defclass property-support ()
   ((property-list :type plist-cell))
