@@ -21,20 +21,15 @@
   THE SOFTWARE.
 |#
 
-(asdf:defsystem #:darts.lib.tools
-  :name "darts.lib.tools"
-  :author "Dirk Esser"
-  :version "0.1"
-  :maintainer "Dirk Esser"
-  :licence "MIT"
-  :description "More or less useful utilities"
-  :long-description ""
-  :in-order-to ((test-op (test-op "darts.lib.tools.test")))
-  :depends-on (#:atomics)
-  :components
-  ((:module "src"
-    :components
-    ((:file "packages")
-     (:file "properties" :depends-on ("packages"))
-     (:file "iteration" :depends-on ("packages"))
-     (:file "observable" :depends-on ("packages"))))))
+(defpackage #:darts.lib.tools.test
+  (:use #:common-lisp #:darts.lib.tools #:fiveam #:bordeaux-threads))
+
+(in-package #:darts.lib.tools.test)
+
+(def-suite tools-suite)
+(def-suite properties-suite :in tools-suite)
+(def-suite observable-suite :in tools-suite)
+(def-suite iteration-suite :in tools-suite)
+
+(defun run-all-tool-tests ()
+  (run! 'tools-suite))
