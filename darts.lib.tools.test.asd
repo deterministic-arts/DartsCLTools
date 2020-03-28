@@ -36,4 +36,5 @@
   ((:module "test"
     :components
     ((:file "packages")
-     (:file "properties")))))
+     (:file "properties")
+     (:file "observers")))))

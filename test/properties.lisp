@@ -24,6 +24,17 @@
 (in-package #:darts.lib.tools.test)
 (in-suite properties-suite)
 
+
+(defun plist-equal (pl1 pl2 &key (test #'eql))
+  (let ((missing (cons nil nil)))
+    (and (eql (length pl1) (length pl2))
+         (loop
+            for (k1 v1) on pl1 by #'cddr
+            as v2 = (getf pl2 k1 missing)
+            unless (funcall test v1 v2)
+            do (return nil)
+            finally (return t)))))
+                                   
 
 
 ;;; The following tests make sure, that all property-related functions
@@ -47,18 +58,6 @@
   (multiple-value-bind (new-value result) (funcall modifier *plist*)
     (setf *plist* new-value)
     result))
-
-
-(defun plist-equal (pl1 pl2 &key (test #'eql))
-  (let ((missing (cons nil nil)))
-    (and (eql (length pl1) (length pl2))
-         (loop
-            for (k1 v1) on pl1 by #'cddr
-            as v2 = (getf pl2 k1 missing)
-            unless (funcall test v1 v2)
-            do (return nil)
-            finally (return t)))))
-                                   
 
 (test reading-properties
   (let ((*plist* (list 'a 1 'b 2)))
@@ -124,3 +123,25 @@
             (is (plist-equal expected-result result))
             (is (plist-equal expected-rest (property-list +singleton+)))))))
             
+
+
+(test property-support-copies-initial-list
+  (let* ((list (list 'a 1 'b 2))
+         (object (make-instance 'property-support
+                                'property-list list)))
+    (setf (cddr list) nil)
+    (is (plist-equal '(a 1 b 2) (property-list object)))))
+
+
+
+(atomics:defstruct (node (:constructor make-node (name)))
+  (plist nil)
+  (name nil :read-only t))
+
+(define-structure-property-list node node-plist)
+
+(test structure-property-lists
+  (let ((object (make-node 'foo)))
+    (setf (property-value object 'bar) 1)
+    (setf (property-value object 'baz) 2)
+    (is (plist-equal '(bar 1 baz 2) (property-list object)))))
