@@ -30,7 +30,7 @@
   :description "Tests for the DARTS.LIB.TOOLS library"
   :long-description ""
   :depends-on (#:fiveam #:bordeaux-threads #:darts.lib.tools)
-  :perform (test-op (o s) (uiop:symbol-call '#:darts.lib.tools.test '#:run-all-tool-tests))
+  :perform (asdf:test-op (#:o #:s) (uiop:symbol-call '#:darts.lib.tools.test '#:run-all-tool-tests))
   :serial t
   :components
   ((:module "test"

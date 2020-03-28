@@ -29,7 +29,7 @@
   :licence "MIT"
   :description "More or less useful utilities"
   :long-description ""
-  :in-order-to ((test-op (test-op "darts.lib.tools.test")))
+  :in-order-to ((asdf:test-op (asdf:test-op "darts.lib.tools.test")))
   :depends-on (#:atomics)
   :components
   ((:module "src"
