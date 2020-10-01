@@ -31,7 +31,7 @@
      #:remove-property #:delete-property #:delete-properties #:delete-properties-if
      #:delete-properties-if-not
 
-     #:named-loop #:label
+     #:named-loop #:label #:preserving-evaluation-order
      
      #:observable #:add-observer #:remove-observer #:observe-event
      #:notify-observers #:add-observer-to-chain #:remove-observer-from-chain
