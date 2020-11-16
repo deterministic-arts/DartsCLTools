@@ -74,7 +74,6 @@
                  (return first)
            finally (error "bogus call"))))))
 
-
 (defun (setf property-value) (value object indicator &optional default)
   "Sets the value of the property named by `indicator' of the
    given `object' to `value'. The optional `default' is ignored
@@ -89,6 +88,28 @@
            finally (return (list* indicator value list)))))
     (update-property-list object #'modify)
     value))
+
+(defun update-property-value (object key modifier &key test test-not)
+  (when (and test test-not) (error "cannot use both, ~S and ~S" :test :test-not))
+  (flet
+      ((samep (x y)
+         (cond
+           (test (funcall test x y))
+           (test-not (not (funcall test-not x y)))
+           (t (eql x y)))))
+    (update-property-list object
+      (lambda (old-list)                        
+        (loop
+          for link on old-list by #'cddr
+          when (eq (car link) key) do
+            (let ((old-value (cadr link)))
+              (multiple-value-bind (new-value result) (funcall modifier old-value link)
+                (if (samep old-value new-value)
+                    (return (values old-list result))
+                    (return (values (list* key new-value (copy-with-tail old-list link (cddr link)))
+                                    result)))))
+          finally (multiple-value-bind (new-value result) (funcall modifier nil nil)
+                    (return (values (list* key new-value old-list) result))))))))
 
 (defun ensure-property (object indicator constructor)
   "Makes sure, that `object' has a property named `indicator'. If

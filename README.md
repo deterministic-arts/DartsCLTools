@@ -64,6 +64,31 @@ method on `update-property-list` exists for the argument object:
 Besides using `setf`, an application can modify object property lists
 by various other functions provided here.
 
+ - **Function** `update-property-value` _object_ _indicator_ _modifier_ `&key` _test_ _test-not_ &rarr; _result_
+ 
+   Updates a single property of _object_ atomically, by invoking
+   the _modifier_ on the old value (if any), and installing the
+   primary return value as the property's new value.
+   
+   The _modifier_ must be a function `(lambda (old-value presentp) ...)`
+   returning two values: the new property value, and another value
+   that it wishes `update-property-value` to return. The function will
+   receive the old property value (or `nil`) as first argument,
+   and a generalized boolean value that indicates, whether the 
+   property was present or not.
+   
+   The property list will be updated only, if the old value is not
+   considered equal under _test_ (or _test-not_, depending on the
+   flavour of comparison chosen.) The default test is `eql`.
+   
+   This function returns whatever the _modifier_ function returned
+   as its secondary value.
+   
+   This function is provided as a courtesy for code that needs to
+   update only a single property, but needs the update to happen
+   atomically in a similar way as it does for `update-property-list`.
+   In this case, using this function is more convenient.
+
  - **Function** `ensure-property` _object_ _indicator_ _constructor_ &rarr; _foundp_ _stored-value_
  
    Ensures, that there is a property named _indicator_ associated

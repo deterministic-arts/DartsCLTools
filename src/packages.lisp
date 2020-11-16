@@ -29,7 +29,7 @@
      #:define-structure-property-list #:map-over-properties
      #:do-properties #:remove-properties-if #:remove-properties-if-not
      #:remove-property #:delete-property #:delete-properties #:delete-properties-if
-     #:delete-properties-if-not
+     #:delete-properties-if-not #:update-property-value
 
      #:named-loop #:label #:preserving-evaluation-order
      
