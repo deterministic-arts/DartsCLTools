@@ -89,7 +89,7 @@
     (update-property-list object #'modify)
     value))
 
-(defun update-property-value (object key modifier &key test test-not)
+(defun update-property-value (object key modifier &key test test-not default)
   (when (and test test-not) (error "cannot use both, ~S and ~S" :test :test-not))
   (flet
       ((samep (x y)
@@ -108,7 +108,7 @@
                     (return (values old-list result))
                     (return (values (list* key new-value (copy-with-tail old-list link (cddr link)))
                                     result)))))
-          finally (multiple-value-bind (new-value result) (funcall modifier nil nil)
+          finally (multiple-value-bind (new-value result) (funcall modifier default nil)
                     (return (values (list* key new-value old-list) result))))))))
 
 (defun ensure-property (object indicator constructor)
