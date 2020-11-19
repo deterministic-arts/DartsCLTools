@@ -6,6 +6,11 @@ here used to be carried over from project to project via copy+paste.
 
 ## Generic Property List Support
 
+The symbols described here are provide by the `darts.lib.tools.properties`
+package. For the benefit of old code, they are also still available
+via the `darts.lib.tools` package, but that should be considered 
+deprecated.
+
 Sometimes it is handy, if an application can store additional data
 in objects managed by other (say: library) code. One way to achieve
 that is to add support for "property lists" to objects. 
@@ -344,6 +349,11 @@ right now.
 This library provides a simple facility for event notifications. The
 feature is split into low-level support code, and a ready to use high 
 level mixin-class.
+
+The symbols described here are provide by the `darts.lib.tools.observables`
+package. For the benefit of old code, they are also still available
+via the `darts.lib.tools` package, but that should be considered 
+deprecated.
 
 ### High-Level API
 

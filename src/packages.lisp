@@ -20,21 +20,37 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   THE SOFTWARE.
 |#
+  
+(defpackage #:darts.lib.tools.properties
+  (:use)
+  (:export #:property-list #:update-property-list #:property-value
+           #:remove-properties #:ensure-property #:property-support
+           #:define-structure-property-list #:map-over-properties
+           #:do-properties #:remove-properties-if #:remove-properties-if-not
+           #:remove-property #:delete-property #:delete-properties #:delete-properties-if
+           #:delete-properties-if-not #:update-property-value))
+
+(defpackage #:darts.lib.tools.observables
+  (:use)
+  (:export #:observable #:add-observer #:remove-observer #:observe-event
+           #:notify-observers #:add-observer-to-chain #:remove-observer-from-chain
+           #:do-observers-in-chain #:notify-observers-in-chain #:parent-observer-chain
+           #:make-observer-chain #:observer-chain-entries #:observer-chain-next
+           #:observer-chain-p))
 
 (defpackage #:darts.lib.tools
-  (:use #:common-lisp)
-  (:export
-     #:property-list #:update-property-list #:property-value
-     #:remove-properties #:ensure-property #:property-support
-     #:define-structure-property-list #:map-over-properties
-     #:do-properties #:remove-properties-if #:remove-properties-if-not
-     #:remove-property #:delete-property #:delete-properties #:delete-properties-if
-     #:delete-properties-if-not #:update-property-value
+  (:use #:common-lisp #:darts.lib.tools.properties #:darts.lib.tools.observables)
+  (:export #:property-list #:update-property-list #:property-value
+           #:remove-properties #:ensure-property #:property-support
+           #:define-structure-property-list #:map-over-properties
+           #:do-properties #:remove-properties-if #:remove-properties-if-not
+           #:remove-property #:delete-property #:delete-properties #:delete-properties-if
+           #:delete-properties-if-not #:update-property-value
 
-     #:named-loop #:label #:preserving-evaluation-order
+           #:named-loop #:label #:preserving-evaluation-order
      
-     #:observable #:add-observer #:remove-observer #:observe-event
-     #:notify-observers #:add-observer-to-chain #:remove-observer-from-chain
-     #:do-observers-in-chain #:notify-observers-in-chain #:parent-observer-chain
-     #:make-observer-chain #:observer-chain-entries #:observer-chain-next
-     #:observer-chain-p))
+           #:observable #:add-observer #:remove-observer #:observe-event
+           #:notify-observers #:add-observer-to-chain #:remove-observer-from-chain
+           #:do-observers-in-chain #:notify-observers-in-chain #:parent-observer-chain
+           #:make-observer-chain #:observer-chain-entries #:observer-chain-next
+           #:observer-chain-p))
