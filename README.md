@@ -399,6 +399,11 @@ deprecated.
    Invoked to notify _observer_, that the event described by _event_
    has occurred with respect to object _source_. There is no default
    method. 
+   
+    - **Method** `observe-event` `(` _observer_ `function` `)` _source_ _event_ &rarr; _undefined_
+      
+      Invokes function _observer_ passing _source_ and _event_ as 
+      arguments. The result is ignored.
  
  - **Class** `observable`
  

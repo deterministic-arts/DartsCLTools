@@ -49,6 +49,10 @@
 
 
 
+(defmethod observe-event ((observer function) object event)
+  (funcall observer object event))
+
+
 ;;; The following definitions represent a variation of the theme on a
 ;;; lower level than the API functions declared above. Incidentally, we
 ;;; can also use these functions in the implementations of the higher
